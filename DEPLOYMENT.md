@@ -75,6 +75,21 @@ If you prefer Pages instead of Workers, set:
    - shared builds open as read-only previews
    - `Save As` from a shared preview creates an editable private copy
 
+## Releases
+
+Use SemVer-style annotated tags such as `v1.0.1`.
+
+1. Merge the release PR to `main` after `CI / verify` passes.
+2. Confirm `Deploy Production` succeeds for the merged commit.
+3. Smoke test `https://cards.dpdns.org/`.
+4. Move `CHANGELOG.md` notes from `Unreleased` into the target version in a PR.
+5. Tag the deployed commit:
+   - `git tag -a v1.0.1 -m "v1.0.1"`
+   - `git push origin v1.0.1`
+6. Create a GitHub Release from the tag and paste the changelog notes.
+
+Do not create the release tag until production smoke testing passes.
+
 ## Notes
 
 - The app continues to work locally with localStorage when Supabase is disabled.
