@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Card Builder</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Cormorant+Infant:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <section class="gate-screen" id="authGate" aria-labelledby="authTitle" hidden>
+      <div class="gate-panel">
+        <p class="eyebrow">Card Builder</p>
+        <h1 id="authTitle">Sign in to build and share cards</h1>
+        <p class="gate-copy">Enter your email and we’ll send a magic link for access.</p>
+        <div class="field">
+          <label>Email</label>
+          <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
+        </div>
+        <button type="button" class="action-button" id="authSignIn">Send magic link</button>
+        <p id="authStatus" class="cloud-status local">Connecting...</p>
+      </div>
+    </section>
+
+    <section class="gate-screen" id="usernameGate" aria-labelledby="usernameTitle" hidden>
+      <div class="gate-panel">
+        <p class="eyebrow">One more step</p>
+        <h1 id="usernameTitle">Create your username</h1>
+        <p class="gate-copy">Shared builds show your username, never your email.</p>
+        <div class="field">
+          <label>Username</label>
+          <input id="usernameInput" autocomplete="username" maxlength="24" placeholder="wendy_main">
+        </div>
+        <button type="button" class="action-button" id="usernameSave">Continue</button>
+        <button type="button" class="clear-button" id="usernameSignOut">Sign out</button>
+        <p id="usernameStatus" class="cloud-status local">Use 3-24 letters, numbers, or underscores.</p>
+      </div>
+    </section>
+
+    <div class="app-shell" id="appShell" hidden>
+      <aside class="control-panel" aria-label="Card controls">
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Local builder</p>
+            <h1>Card Builder</h1>
+          </div>
+          <span class="size-pill">1080 x 1440</span>
+        </header>
+
+        <div class="toolbar" aria-label="Card actions">
+          <div class="segmented" role="group" aria-label="Theme">
+            <button type="button" data-theme="dark">Dark</button>
+            <button type="button" data-theme="light">Light</button>
+            <button type="button" data-theme="linear">Linear</button>
+          </div>
+          <div class="segmented view-tabs" role="tablist" aria-label="View">
+            <button type="button" id="builderTab" role="tab" aria-selected="true">Builder</button>
+            <button type="button" id="sharedTab" role="tab" aria-selected="false">Shared Builds</button>
+          </div>
+          <button type="button" class="action-button" id="sampleButton">Wendy Sample</button>
+          <button type="button" class="action-button" id="exportButton">Export PNG</button>
+          <button type="button" class="danger-button" id="resetButton">Reset</button>
+        </div>
+
+        <form id="editorForm" class="editor-form" autocomplete="off"></form>
+      </aside>
+
+      <main class="preview-panel">
+        <div class="preview-toolbar">
+          <div>
+            <p class="eyebrow">Live preview</p>
+            <h2 id="previewTitle">Untitled build</h2>
+          </div>
+          <p id="saveStatus" class="save-status">Autosaved</p>
+        </div>
+        <div class="canvas-frame">
+          <canvas id="cardCanvas" width="1080" height="1440" aria-label="Card preview"></canvas>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="pickerModal" hidden>
+      <section class="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+        <header class="picker-header">
+          <h2 id="pickerTitle">Choose asset</h2>
+          <button type="button" class="icon-button" id="closePicker" aria-label="Close picker">x</button>
+        </header>
+        <div class="picker-actions">
+          <button type="button" class="action-button" id="clearSlot">Clear slot</button>
+        </div>
+        <div id="pickerGrid" class="picker-grid"></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="exportModal" hidden>
+      <section class="export-dialog" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+        <header class="picker-header">
+          <h2 id="exportTitle">Export PNG</h2>
+          <button type="button" class="icon-button" id="closeExport" aria-label="Close export preview">x</button>
+        </header>
+        <div class="export-actions">
+          <a class="action-button export-link" id="downloadExport" download="card-build.png">Download PNG</a>
+          <a class="action-button export-link" id="openExport" target="_blank" rel="noopener">Open Image</a>
+        </div>
+        <div class="export-preview-frame">
+          <img id="exportPreview" alt="Export preview">
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

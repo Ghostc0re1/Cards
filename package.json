@@ -1,0 +1,30 @@
+{
+  "name": "card-builder",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "deploy": "npm run build && npx wrangler deploy",
+    "install:browsers": "playwright install chromium",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "npm run install:browsers && playwright test",
+    "test": "npm run test:coverage && npm run test:e2e",
+    "test:headed": "npm run install:browsers && playwright test --headed",
+    "typecheck": "tsc --noEmit",
+    "release:check": "npm run check && npm run build && npm test",
+    "check": "node --check app.js && node --check scripts/dev-server.mjs && node --check scripts/build-static.mjs && node --check vite.config.js && node --check playwright.config.js && node --check tests/card-builder.spec.js && npm run typecheck"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.7",
+    "playwright": "^1.52.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2"
+  }
+}
