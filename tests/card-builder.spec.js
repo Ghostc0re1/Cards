@@ -306,6 +306,17 @@ async function buildLibrarySnapshot(page) {
   );
 }
 
+async function openSavedBuildsModal(page) {
+  await page.locator("[data-open-saved-builds]").click();
+  await expect(page.locator("#savedBuildsModal")).toBeVisible();
+}
+
+async function openSavedBuildById(page, buildId) {
+  await openSavedBuildsModal(page);
+  await page.locator(`[data-saved-build-open="${buildId}"]`).first().click();
+  await expect(page.locator("#savedBuildsModal")).toBeHidden();
+}
+
 test("loads the builder without console errors", async ({ page }) => {
   const errors = await openBuilder(page);
 
@@ -662,11 +673,131 @@ test("local build library can save and load a named build", async ({ page }) => 
 
   await page.locator("[data-build-name]").fill("Smoke Build");
   await page.locator("[data-build-save]").click();
-  await expect(page.locator("[data-build-select]")).toContainText("Smoke Build");
+  await openSavedBuildsModal(page);
+  await expect(page.locator("#savedBuildsList")).toContainText("Smoke Build");
+  await page.locator("#closeSavedBuilds").click();
 
   await page.locator("[data-build-new]").click();
-  await page.locator("[data-build-select]").selectOption({ label: "Smoke Build" });
+  await openSavedBuildsModal(page);
+  await page
+    .locator("[data-saved-build-open]")
+    .filter({ hasText: "Smoke Build" })
+    .first()
+    .click();
   await expect(page.locator("[data-build-name]")).toHaveValue("Smoke Build");
+});
+
+test("saved builds modal searches sorts filters and opens without overwriting", async ({
+  page,
+}) => {
+  const early = "2026-01-01T00:00:00.000Z";
+  const middle = "2026-01-02T00:00:00.000Z";
+  const late = "2026-01-03T00:00:00.000Z";
+  await openBuilder(page, {
+    initialCloudRows: [
+      {
+        id: "alpha",
+        name: "Arena Wendy",
+        state_json: { title: "Wendy", tags: ["Arena"], notes: "Control lane" },
+        created_at: early,
+        updated_at: middle,
+        deleted_at: null,
+        shared_at: null,
+      },
+      {
+        id: "beta",
+        name: "Boss Merlin",
+        state_json: { title: "Merlin", tags: ["Boss"], notes: "Frost timing" },
+        created_at: early,
+        updated_at: late,
+        deleted_at: null,
+        shared_at: null,
+      },
+      {
+        id: "public",
+        name: "Public Gwen",
+        state_json: { title: "Gwen", tags: ["Hybrid"], notes: "Published plan" },
+        created_at: early,
+        updated_at: middle,
+        deleted_at: null,
+        shared_at: middle,
+      },
+    ],
+  });
+
+  await page.locator("[data-field='title']").fill("Original Hero");
+  await expect
+    .poll(async () => (await activeBuildState(page)).title)
+    .toBe("Original Hero");
+
+  await openSavedBuildsModal(page);
+  await expect(page.locator("#savedBuildsList")).toContainText("Arena Wendy");
+  await expect(page.locator("#savedBuildsList")).toContainText("Boss Merlin");
+  await expect(page.locator("#savedBuildsList")).toContainText("Public Gwen");
+
+  await page.locator("#savedBuildsSearch").fill("frost");
+  await expect(page.locator("#savedBuildsList")).toContainText("Boss Merlin");
+  await expect(page.locator("#savedBuildsList")).not.toContainText("Arena Wendy");
+
+  await page.locator("#savedBuildsSearch").fill("");
+  await page.locator("#savedBuildsSort").selectOption("name");
+  await expect(page.locator(".saved-build-name").first()).toHaveText(
+    "Arena Wendy",
+  );
+
+  await page.locator("[data-saved-build-filter='published']").click();
+  await expect(page.locator("#savedBuildsList")).toContainText("Public Gwen");
+  await expect(page.locator("#savedBuildsList")).not.toContainText(
+    "Boss Merlin",
+  );
+
+  await page.locator("[data-saved-build-filter='all']").click();
+  await page.locator('[data-saved-build-open="beta"]').first().click();
+  await expect(page.locator("[data-build-name]")).toHaveValue("Boss Merlin");
+  await expect(page.locator("[data-field='title']")).toHaveValue("Merlin");
+  const library = await buildLibrarySnapshot(page);
+  expect(
+    library.builds.some((build) => build.state.title === "Original Hero"),
+  ).toBe(true);
+});
+
+test("saved builds modal duplicate and delete row actions update the library", async ({
+  page,
+}) => {
+  const now = new Date().toISOString();
+  page.on("dialog", (dialog) => dialog.accept());
+  await openBuilder(page, {
+    initialCloudRows: [
+      {
+        id: "modal-target",
+        name: "Modal Target",
+        state_json: { title: "Target Hero", tags: ["Test"], notes: "Copy me" },
+        created_at: now,
+        updated_at: now,
+        deleted_at: null,
+        shared_at: null,
+      },
+    ],
+  });
+
+  await openSavedBuildsModal(page);
+  await page.locator('[data-saved-build-duplicate="modal-target"]').click();
+  await expect(page.locator("[data-build-name]")).toHaveValue(
+    "Modal Target Copy",
+  );
+  let library = await buildLibrarySnapshot(page);
+  expect(library.builds.some((build) => build.name === "Modal Target Copy")).toBe(
+    true,
+  );
+
+  await openSavedBuildsModal(page);
+  await page.locator('[data-saved-build-delete="modal-target"]').click();
+  await expect(page.locator('[data-saved-build-row="modal-target"]')).toHaveCount(0);
+  library = await buildLibrarySnapshot(page);
+  expect(library.builds.some((build) => build.id === "modal-target")).toBe(
+    false,
+  );
+  await page.locator("#closeSavedBuilds").click();
 });
 
 test("wendy sample preview does not overwrite the active build", async ({
@@ -1255,7 +1386,7 @@ test("failed unpublish keeps the local published status and shared row", async (
     ],
   });
 
-  await page.locator("[data-build-select]").selectOption("owner-build");
+  await openSavedBuildById(page, "owner-build");
   await page.locator("[data-unpublish-build]").click();
 
   await expect(page.locator("#saveStatus")).toContainText("Unpublish failed");
@@ -1296,15 +1427,19 @@ test("cloud build deletion does not resurrect after sync", async ({ page }) => {
   await expect(page.locator("[data-cloud-status]")).toContainText("Synced");
 
   await page.locator("[data-build-delete]").click();
-  await expect(page.locator("[data-build-select]")).not.toContainText(
+  await openSavedBuildsModal(page);
+  await expect(page.locator("#savedBuildsList")).not.toContainText(
     "Delete Smoke Build",
   );
+  await page.locator("#closeSavedBuilds").click();
   await page.locator("[data-cloud-sync]").click();
 
   await expect(page.locator("[data-cloud-status]")).toContainText("Synced");
-  await expect(page.locator("[data-build-select]")).not.toContainText(
+  await openSavedBuildsModal(page);
+  await expect(page.locator("#savedBuildsList")).not.toContainText(
     "Delete Smoke Build",
   );
+  await page.locator("#closeSavedBuilds").click();
   const cloudRows = await page.evaluate(() => window.__CARD_BUILDER_CLOUD_ROWS__());
   expect(cloudRows.some((row) => row.name === "Delete Smoke Build")).toBe(
     false,
@@ -1337,10 +1472,12 @@ test("tombstoned cloud builds are hidden during sync", async ({ page }) => {
   });
 
   await expect(page.locator("[data-cloud-status]")).toContainText("Synced");
-  await expect(page.locator("[data-build-select]")).toContainText(
+  await openSavedBuildsModal(page);
+  await expect(page.locator("#savedBuildsList")).toContainText(
     "Live Cloud Build",
   );
-  await expect(page.locator("[data-build-select]")).not.toContainText(
+  await expect(page.locator("#savedBuildsList")).not.toContainText(
     "Deleted Cloud Build",
   );
+  await page.locator("#closeSavedBuilds").click();
 });

@@ -56,9 +56,12 @@ describe("form-view", () => {
     const html = renderFormHtml(viewModel());
 
     expect(html).toContain('data-build-save ');
+    expect(html).toContain("data-open-saved-builds");
+    expect(html).toContain("1 saved build");
     expect(html).toContain('value="Wendy Build"');
     expect(html).toContain("src/supabase-config.ts");
     expect(html).toContain("Send magic link");
+    expect(html).not.toContain("data-build-load");
   });
 
   it("renders Wendy preview controls with destructive actions disabled", () => {

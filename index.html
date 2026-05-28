@@ -82,6 +82,41 @@
       </main>
     </div>
 
+    <div class="modal-backdrop" id="savedBuildsModal" hidden>
+      <section class="saved-builds-dialog" role="dialog" aria-modal="true" aria-labelledby="savedBuildsTitle">
+        <header class="picker-header">
+          <div>
+            <p class="eyebrow">Private library</p>
+            <h2 id="savedBuildsTitle">Saved Builds</h2>
+          </div>
+          <button type="button" class="icon-button" id="closeSavedBuilds" aria-label="Close saved builds">x</button>
+        </header>
+        <div class="saved-builds-tools">
+          <div class="field saved-builds-search">
+            <label>Search</label>
+            <input id="savedBuildsSearch" data-saved-build-search placeholder="Build, hero, tag, note">
+          </div>
+          <div class="field saved-builds-sort">
+            <label>Sort</label>
+            <select id="savedBuildsSort" data-saved-build-sort>
+              <option value="updated">Recently updated</option>
+              <option value="name">Name A-Z</option>
+              <option value="hero">Hero A-Z</option>
+              <option value="published">Published first</option>
+            </select>
+          </div>
+        </div>
+        <div class="saved-builds-filters" role="group" aria-label="Saved build filters">
+          <button type="button" class="clear-button" data-saved-build-filter="all">All</button>
+          <button type="button" class="clear-button" data-saved-build-filter="published">Published</button>
+          <button type="button" class="clear-button" data-saved-build-filter="private">Private</button>
+          <button type="button" class="clear-button" data-saved-build-filter="local">Needs publish</button>
+        </div>
+        <p id="savedBuildsSummary" class="saved-builds-summary">No saved builds</p>
+        <div id="savedBuildsList" class="saved-builds-list"></div>
+      </section>
+    </div>
+
     <div class="modal-backdrop" id="pickerModal" hidden>
       <section class="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
         <header class="picker-header">

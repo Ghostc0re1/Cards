@@ -86,6 +86,16 @@ import {
   skillLabelPathForAssetPath,
 } from "./asset-picker.ts";
 import {
+  buildSavedBuildItems,
+  filterAndSortSavedBuilds,
+  type SavedBuildFilter,
+  type SavedBuildSort,
+} from "./saved-builds.ts";
+import {
+  renderSavedBuildsListHtml,
+  savedBuildsSummaryText,
+} from "./saved-builds-view.ts";
+import {
   closestFromEvent,
   bindCardBuilderEvents,
   eventTargetElement,
@@ -160,6 +170,24 @@ function themeNameFromValue(value: unknown): ThemeName | null {
     : null;
 }
 
+function savedBuildSortFromValue(value: unknown): SavedBuildSort | null {
+  return value === "updated" ||
+    value === "name" ||
+    value === "hero" ||
+    value === "published"
+    ? value
+    : null;
+}
+
+function savedBuildFilterFromValue(value: unknown): SavedBuildFilter | null {
+  return value === "all" ||
+    value === "published" ||
+    value === "private" ||
+    value === "local"
+    ? value
+    : null;
+}
+
 export class CardBuilderApp {
   private readonly refs: DomRefs;
   private readonly storage: Storage | undefined;
@@ -185,6 +213,9 @@ export class CardBuilderApp {
   private isSamplePreview = false;
   private sharedPreview: SharedBuild | null = null;
   private activeView: AppView = "builder";
+  private savedBuildsQuery = "";
+  private savedBuildsSort: SavedBuildSort = "updated";
+  private savedBuildsFilter: SavedBuildFilter = "all";
   private appInitialized = false;
   private authRedirectNotice = "";
   private pendingAuthRedirectCleanup = false;
@@ -221,6 +252,13 @@ export class CardBuilderApp {
       onFormFocusOut: () => this.handleFormFocusOut(),
       onFormToggle: (event) => this.handleFormToggle(event),
       onFormClick: (event) => this.handleFormClick(event),
+      onSavedBuildsModalInput: (event) =>
+        this.handleSavedBuildsModalInput(event),
+      onSavedBuildsModalChange: (event) =>
+        this.handleSavedBuildsModalChange(event),
+      onSavedBuildsModalClick: (event) =>
+        this.handleSavedBuildsModalClick(event),
+      onCloseSavedBuildsClick: () => this.closeSavedBuildsModal(),
       onThemeClick: (button) => this.handleThemeClick(button),
       onPickerGridClick: (event) => this.handlePickerGridClick(event),
       onClosePickerClick: () => this.closeAssetPicker(),
@@ -1117,10 +1155,17 @@ export class CardBuilderApp {
     if (this.isPreviewing()) return;
     const active = this.getActiveBuild();
     if (!active) return;
-    const record = makeBuildRecord(active.state, `${active.name} Copy`);
+    this.duplicateBuild(active.id);
+  }
+
+  private duplicateBuild(buildId: string): void {
+    const source = this.buildLibrary.builds.find((build) => build.id === buildId);
+    if (!source) return;
+    const record = makeBuildRecord(source.state, `${source.name} Copy`);
     this.buildLibrary.builds.unshift(record);
     this.buildLibrary.activeBuildId = record.id;
     this.activeView = "builder";
+    this.exitSamplePreview();
     this.state = clone(record.state);
     this.saveBuildLibrary();
     this.renderFormSafely();
@@ -1133,27 +1178,77 @@ export class CardBuilderApp {
     if (this.isPreviewing()) return;
     const active = this.getActiveBuild();
     if (!active) return;
-    const confirmed = window.confirm(`Delete "${active.name}"?`);
+    this.deleteBuild(active.id);
+  }
+
+  private deleteBuild(buildId: string): void {
+    const target = this.buildLibrary.builds.find((build) => build.id === buildId);
+    if (!target) return;
+    const confirmed = window.confirm(`Delete "${target.name}"?`);
     if (!confirmed) return;
+    const wasActive = target.id === this.buildLibrary.activeBuildId;
     const deletedAt = new Date().toISOString();
     this.buildLibrary.deletedBuilds = mergeTombstones(
       this.buildLibrary.deletedBuilds,
-      [{ id: active.id, deletedAt }],
+      [{ id: target.id, deletedAt }],
     );
     this.buildLibrary.builds = this.buildLibrary.builds.filter(
-      (build) => build.id !== active.id,
+      (build) => build.id !== target.id,
     );
     if (!this.buildLibrary.builds.length) {
       const replacement = makeBuildRecord(defaultState(), "Untitled build");
       this.buildLibrary.builds.push(replacement);
     }
-    this.buildLibrary.activeBuildId = this.buildLibrary.builds[0].id;
-    this.state = clone(this.buildLibrary.builds[0].state);
+    if (wasActive) {
+      this.exitSamplePreview();
+      this.activeView = "builder";
+      this.buildLibrary.activeBuildId = this.buildLibrary.builds[0].id;
+      this.state = clone(this.buildLibrary.builds[0].state);
+    }
     this.saveBuildLibrary();
     this.renderFormSafely();
     this.renderCard();
     this.refs.saveStatus.textContent = "Build deleted";
     this.scheduleCloudSync();
+  }
+
+  private renderSavedBuildsModal(): void {
+    this.refs.savedBuildsSearch.value = this.savedBuildsQuery;
+    this.refs.savedBuildsSort.value = this.savedBuildsSort;
+    const allItems = buildSavedBuildItems(this.buildLibrary, {
+      activeBuildId: this.buildLibrary.activeBuildId,
+      profileUsername: this.profile?.username || "",
+    });
+    const items = filterAndSortSavedBuilds(allItems, {
+      query: this.savedBuildsQuery,
+      sort: this.savedBuildsSort,
+      filter: this.savedBuildsFilter,
+    });
+    const model = {
+      items,
+      totalCount: allItems.length,
+      query: this.savedBuildsQuery,
+      filter: this.savedBuildsFilter,
+    };
+    this.refs.savedBuildsSummary.textContent = savedBuildsSummaryText(model);
+    this.refs.savedBuildsList.innerHTML = renderSavedBuildsListHtml(model);
+    this.refs.savedBuildsModal
+      .querySelectorAll<HTMLButtonElement>("[data-saved-build-filter]")
+      .forEach((button) => {
+        const selected = button.dataset.savedBuildFilter === this.savedBuildsFilter;
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+  }
+
+  private openSavedBuildsModal(): void {
+    this.renderSavedBuildsModal();
+    this.refs.savedBuildsModal.hidden = false;
+    requestAnimationFrame(() => this.refs.savedBuildsSearch.focus());
+  }
+
+  private closeSavedBuildsModal(): void {
+    this.refs.savedBuildsModal.hidden = true;
   }
 
   private openAssetPicker(kind: PickerKind, path: string): void {
@@ -1317,16 +1412,6 @@ export class CardBuilderApp {
     if (this.activeView === "shared") return;
     this.focus.markEditorInput();
     const scrollState = this.focus.capturePendingOrCurrentScrollState();
-    const buildSelect = closestFromEvent<HTMLSelectElement>(
-      event,
-      "[data-build-select]",
-    );
-    if (buildSelect) {
-      this.activateBuild(buildSelect.value);
-      this.focus.restoreScrollState(scrollState);
-      this.focus.clearPendingControlScrollState();
-      return;
-    }
     const importFile = closestFromEvent<HTMLInputElement>(
       event,
       "[data-import-json-file]",
@@ -1364,6 +1449,81 @@ export class CardBuilderApp {
     if (!section) return;
     const sectionKey = section.dataset.section;
     if (sectionKey) this.formSectionOpenState[sectionKey] = section.open;
+  }
+
+  private handleSavedBuildsModalInput(event: Event): void {
+    const search = closestFromEvent<HTMLInputElement>(
+      event,
+      "[data-saved-build-search]",
+    );
+    if (!search) return;
+    this.savedBuildsQuery = search.value;
+    this.renderSavedBuildsModal();
+  }
+
+  private handleSavedBuildsModalChange(event: Event): void {
+    const sort = closestFromEvent<HTMLSelectElement>(
+      event,
+      "[data-saved-build-sort]",
+    );
+    const value = savedBuildSortFromValue(sort?.value);
+    if (!value) return;
+    this.savedBuildsSort = value;
+    this.renderSavedBuildsModal();
+  }
+
+  private handleSavedBuildsModalClick(event: MouseEvent): void {
+    if (event.target === this.refs.savedBuildsModal) {
+      this.closeSavedBuildsModal();
+      return;
+    }
+    const filter = closestFromEvent<HTMLElement>(
+      event,
+      "[data-saved-build-filter]",
+    );
+    if (filter) {
+      const value = savedBuildFilterFromValue(filter.dataset.savedBuildFilter);
+      if (value) {
+        this.savedBuildsFilter = value;
+        this.renderSavedBuildsModal();
+      }
+      return;
+    }
+    const openButton = closestFromEvent<HTMLElement>(
+      event,
+      "[data-saved-build-open]",
+    );
+    if (openButton) {
+      const buildId = openButton.dataset.savedBuildOpen;
+      if (buildId) {
+        this.closeSavedBuildsModal();
+        this.activateBuild(buildId);
+      }
+      return;
+    }
+    const duplicateButton = closestFromEvent<HTMLElement>(
+      event,
+      "[data-saved-build-duplicate]",
+    );
+    if (duplicateButton) {
+      const buildId = duplicateButton.dataset.savedBuildDuplicate;
+      if (buildId) {
+        this.closeSavedBuildsModal();
+        this.duplicateBuild(buildId);
+      }
+      return;
+    }
+    const deleteButton = closestFromEvent<HTMLElement>(
+      event,
+      "[data-saved-build-delete]",
+    );
+    if (deleteButton) {
+      const buildId = deleteButton.dataset.savedBuildDelete;
+      if (buildId) {
+        this.deleteBuild(buildId);
+        this.renderSavedBuildsModal();
+      }
+    }
   }
 
   private handleFormClick(event: MouseEvent): void {
@@ -1451,6 +1611,10 @@ export class CardBuilderApp {
         ?.click();
       return;
     }
+    if (closestFromEvent(event, "[data-open-saved-builds]")) {
+      this.openSavedBuildsModal();
+      return;
+    }
     if (closestFromEvent(event, "[data-build-new]")) {
       this.createNewBuild();
       return;
@@ -1467,13 +1631,6 @@ export class CardBuilderApp {
     }
     if (closestFromEvent(event, "[data-build-save-as]")) {
       this.saveAsBuild();
-      return;
-    }
-    if (closestFromEvent(event, "[data-build-load]")) {
-      const selected = this.refs.form.querySelector<HTMLSelectElement>(
-        "[data-build-select]",
-      )?.value;
-      if (selected) this.activateBuild(selected);
       return;
     }
     if (closestFromEvent(event, "[data-build-duplicate]")) {
@@ -1598,6 +1755,7 @@ export class CardBuilderApp {
 
   private handleWindowKeydown(event: KeyboardEvent): void {
     if (event.key !== "Escape") return;
+    if (!this.refs.savedBuildsModal.hidden) this.closeSavedBuildsModal();
     if (!this.refs.pickerModal.hidden) this.closeAssetPicker();
     if (!this.refs.exportModal.hidden) this.closeExportModal();
   }
