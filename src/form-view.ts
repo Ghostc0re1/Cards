@@ -129,21 +129,17 @@ function buildControlsHtml(model: BuildFormViewModel): string {
   const publishButtonLabel = active?.sharedAt
     ? "Publish changes"
     : "Publish build";
-  const options = model.buildLibrary.builds
-    .map(
-      (build) =>
-        `<option value="${escapeHtml(build.id)}" ${build.id === active?.id ? "selected" : ""}>${escapeHtml(build.name)}</option>`,
-    )
-    .join("");
+  const buildCount = model.buildLibrary.builds.length;
+  const buildCountLabel = `${buildCount} saved ${buildCount === 1 ? "build" : "builds"}`;
   const magicLinkDisabled =
     !model.cloudConfigured ||
     model.magicLinkInFlight ||
     model.magicLinkRemaining > 0;
   return `
     <div class="build-controls">
-      <div class="field">
-        <label>Load build</label>
-        <select class="build-select" data-build-select>${options}</select>
+      <div class="build-library-control">
+        <button type="button" class="action-button" data-open-saved-builds>Saved Builds</button>
+        <span>${escapeHtml(buildCountLabel)}</span>
       </div>
       <div class="field">
         <label>Build name</label>
@@ -153,7 +149,6 @@ function buildControlsHtml(model: BuildFormViewModel): string {
         <button type="button" class="action-button" data-build-new>New</button>
         <button type="button" class="action-button" data-build-save ${model.previewing ? "disabled" : ""}>Save</button>
         <button type="button" class="action-button" data-build-save-as>Save As</button>
-        <button type="button" class="action-button" data-build-load>Load</button>
         <button type="button" class="action-button" data-build-duplicate ${model.previewing ? "disabled" : ""}>Duplicate</button>
         <button type="button" class="danger-button" data-build-delete ${model.previewing ? "disabled" : ""}>Delete</button>
       </div>

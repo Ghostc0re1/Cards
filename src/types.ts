@@ -157,6 +157,12 @@ export interface DomRefs {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   form: HTMLFormElement;
+  savedBuildsModal: HTMLDivElement;
+  savedBuildsSearch: HTMLInputElement;
+  savedBuildsSort: HTMLSelectElement;
+  savedBuildsSummary: HTMLElement;
+  savedBuildsList: HTMLDivElement;
+  closeSavedBuilds: HTMLButtonElement;
   pickerModal: HTMLDivElement;
   pickerGrid: HTMLDivElement;
   pickerTitle: HTMLElement;

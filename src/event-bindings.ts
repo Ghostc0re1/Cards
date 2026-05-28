@@ -9,6 +9,10 @@ export interface CardBuilderEventHandlers {
   onFormFocusOut(event: FocusEvent): void;
   onFormToggle(event: Event): void;
   onFormClick(event: MouseEvent): void;
+  onSavedBuildsModalInput(event: Event): void;
+  onSavedBuildsModalChange(event: Event): void;
+  onSavedBuildsModalClick(event: MouseEvent): void;
+  onCloseSavedBuildsClick(event: MouseEvent): void;
   onThemeClick(button: HTMLElement, event: MouseEvent): void;
   onPickerGridClick(event: MouseEvent): void;
   onClosePickerClick(event: MouseEvent): void;
@@ -52,6 +56,22 @@ export function bindCardBuilderEvents(
   refs.form.addEventListener("focusout", handlers.onFormFocusOut);
   refs.form.addEventListener("toggle", handlers.onFormToggle, true);
   refs.form.addEventListener("click", handlers.onFormClick);
+  refs.savedBuildsModal.addEventListener(
+    "input",
+    handlers.onSavedBuildsModalInput,
+  );
+  refs.savedBuildsModal.addEventListener(
+    "change",
+    handlers.onSavedBuildsModalChange,
+  );
+  refs.savedBuildsModal.addEventListener(
+    "click",
+    handlers.onSavedBuildsModalClick,
+  );
+  refs.closeSavedBuilds.addEventListener(
+    "click",
+    handlers.onCloseSavedBuildsClick,
+  );
 
   document.querySelectorAll<HTMLElement>("[data-theme]").forEach((button) => {
     button.addEventListener("click", (event) =>
