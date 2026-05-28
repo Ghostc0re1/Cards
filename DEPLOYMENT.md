@@ -17,6 +17,7 @@ The repo uses two workflows:
 
 - `CI` runs on pull requests and pushes to `main`. Its required merge check is the `verify` job.
 - `Deploy Production` runs on pushes to `main` and can also be run manually. It reruns `npm run release:check` before `wrangler deploy`.
+- The deploy workflow pins Wrangler v4 because this project is a static-assets-only Worker. Older Wrangler versions can incorrectly require a `main` Worker entrypoint.
 
 Required GitHub secrets for the `production` environment:
 
@@ -80,3 +81,4 @@ If you prefer Pages instead of Workers, set:
 - Export sharing is PNG-only in this phase.
 - JSON export/import remains available as a backup path.
 - Cloud build deletions use `deleted_at` tombstones and shared builds use published snapshots, so rerun `supabase/schema.sql` after pulling schema changes.
+- Keep Cloudflare dashboard Git builds on `npx wrangler versions upload`; production promotion should happen through the GitHub deploy workflow.
