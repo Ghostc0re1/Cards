@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Policy | Cards</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Cormorant+Infant:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="policy-page">
+    <main class="policy-shell">
+      <nav class="policy-nav" aria-label="Privacy navigation">
+        <a class="action-button policy-back" href="/">Back to Cards</a>
+      </nav>
+
+      <header class="policy-header">
+        <p class="eyebrow">Cards</p>
+        <h1>Privacy Policy</h1>
+        <p>Last updated: June 3, 2026</p>
+      </header>
+
+      <section class="policy-section">
+        <h2>Overview</h2>
+        <p>
+          Cards is a personal card builder for creating, saving, syncing, and
+          optionally publishing game build cards. This policy explains what
+          information the app uses, why it is used, and the choices you have.
+        </p>
+        <p>
+          Cards is not designed to collect sensitive personal information. Do
+          not put private, confidential, or sensitive information into build
+          names, notes, card text, usernames, or shared builds.
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Information Cards Uses</h2>
+        <ul>
+          <li>
+            <strong>Email address:</strong> used by Supabase Auth to send magic
+            sign-in links and manage your authenticated session. Email addresses
+            are not shown in shared build listings.
+          </li>
+          <li>
+            <strong>Username:</strong> created on first sign-in and shown next
+            to builds you choose to publish.
+          </li>
+          <li>
+            <strong>Build content:</strong> saved cards include build names,
+            hero names, tags, notes, selected assets, colors, equipment choices,
+            and other card fields.
+          </li>
+          <li>
+            <strong>Published builds:</strong> when you publish a build, Cards
+            stores a public snapshot of that build for signed-in users to view
+            and copy. Editing your private build does not update the published
+            snapshot until you publish changes.
+          </li>
+          <li>
+            <strong>Local browser data:</strong> Cards uses localStorage for
+            saved build state, build library data, and magic-link cooldown
+            timing. Supabase may also store authentication session data in your
+            browser so you stay signed in.
+          </li>
+          <li>
+            <strong>Technical logs:</strong> hosting, authentication, database,
+            and email providers may process operational data such as IP address,
+            browser details, request timing, delivery status, and error logs.
+          </li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>How Information Is Used</h2>
+        <ul>
+          <li>To authenticate you and keep your account secure.</li>
+          <li>To save, load, sync, duplicate, delete, export, and publish builds.</li>
+          <li>To show usernames on shared builds without showing email addresses.</li>
+          <li>To diagnose bugs, prevent abuse, and maintain the service.</li>
+        </ul>
+        <p>
+          Cards does not sell personal information and does not use build data
+          for advertising.
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Sharing And Service Providers</h2>
+        <p>
+          Private builds are intended to be visible only to the signed-in owner.
+          Published builds are visible to signed-in Cards users and include the
+          publisher's username.
+        </p>
+        <p>
+          Cards uses service providers to run the app: Cloudflare for hosting,
+          Supabase for authentication and database storage, and Brevo or the
+          configured email provider for magic-link email delivery. Those
+          providers process data only as needed to provide their services.
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Your Choices</h2>
+        <ul>
+          <li>You can keep builds private by not publishing them.</li>
+          <li>You can unpublish a build to remove its shared snapshot.</li>
+          <li>You can delete saved builds in the app.</li>
+          <li>You can sign out and clear your browser storage to remove local app data from that browser.</li>
+          <li>You can request account, username, or cloud build deletion from the maintainer.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>Retention</h2>
+        <p>
+          Cloud-synced builds and usernames are kept while your account remains
+          active or until deletion is requested. Deleted builds may leave
+          tombstone records so cloud sync does not accidentally restore them.
+          Published snapshots are kept until you unpublish them or deletion is
+          requested.
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Security</h2>
+        <p>
+          Cards uses HTTPS, Supabase Auth, and Supabase row-level security
+          policies to separate private user data. No service-role keys or
+          private credentials are intentionally included in the browser app.
+          No system is perfectly secure, so avoid storing sensitive content in
+          builds.
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Children</h2>
+        <p>
+          Cards is not intended for children under 13. If you believe a child
+          provided personal information through Cards, contact the maintainer so
+          it can be reviewed and deleted where appropriate.
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Changes</h2>
+        <p>
+          This policy may be updated as Cards changes. The latest version will
+          be posted on this page with an updated date.
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Contact</h2>
+        <p>
+          For privacy requests or questions, contact the maintainer through the
+          Cards GitHub repository or the channel where you received access to
+          the app.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

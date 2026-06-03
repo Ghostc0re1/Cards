@@ -8,6 +8,7 @@ const entries = [
   "src",
   "app.js",
   "index.html",
+  "privacy.html",
   "styles.css",
   "LICENSE",
 ];
