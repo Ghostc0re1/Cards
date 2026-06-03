@@ -350,7 +350,9 @@ test("declares a browser favicon", async ({ page }) => {
 test("privacy policy is available before sign-in", async ({ page }) => {
   await openBuilder(page, { signedOut: true, expectAuthGate: true });
 
-  const privacyLink = page.locator("#authGate a[href='/privacy.html']");
+  await expect(page.locator("#authGate a[href='/privacy.html']")).toHaveCount(0);
+  await expect(page.locator(".toolbar a[href='/privacy.html']")).toHaveCount(0);
+  const privacyLink = page.locator(".site-footer a[href='/privacy.html']");
   await expect(privacyLink).toBeVisible();
   await privacyLink.click();
 
@@ -358,6 +360,19 @@ test("privacy policy is available before sign-in", async ({ page }) => {
   await expect(page.locator("h1")).toHaveText("Privacy Policy");
   await expect(page.locator("body")).toContainText("Email address");
   await expect(page.locator("body")).toContainText("Published builds");
+  await expect
+    .poll(() =>
+      page.evaluate(() => ({
+        canScroll: document.documentElement.scrollHeight > window.innerHeight,
+        htmlOverflow: getComputedStyle(document.documentElement).overflowY,
+        bodyOverflow: getComputedStyle(document.body).overflowY,
+      })),
+    )
+    .toEqual({
+      canScroll: true,
+      htmlOverflow: "auto",
+      bodyOverflow: "auto",
+    });
 });
 
 test("signed-out visitors see the auth gate instead of the builder", async ({
