@@ -347,6 +347,19 @@ test("declares a browser favicon", async ({ page }) => {
   );
 });
 
+test("privacy policy is available before sign-in", async ({ page }) => {
+  await openBuilder(page, { signedOut: true, expectAuthGate: true });
+
+  const privacyLink = page.locator("#authGate a[href='/privacy.html']");
+  await expect(privacyLink).toBeVisible();
+  await privacyLink.click();
+
+  await expect(page).toHaveURL(/\/privacy\.html$/);
+  await expect(page.locator("h1")).toHaveText("Privacy Policy");
+  await expect(page.locator("body")).toContainText("Email address");
+  await expect(page.locator("body")).toContainText("Published builds");
+});
+
 test("signed-out visitors see the auth gate instead of the builder", async ({
   page,
 }) => {

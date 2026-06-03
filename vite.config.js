@@ -6,6 +6,12 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        app: resolve("index.html"),
+        privacy: resolve("privacy.html"),
+      },
+    },
   },
   plugins: [
     {
